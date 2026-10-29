@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "managingTenant", "managedTenants"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "managingTenant": { "$ref": "#/$defs/tenant" },
+    "managedTenants": {
+      "type": "array", "minItems": 1, "maxItems": 100,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["tenantId", "domain", "sourceGroup", "synchronization", "authorization", "azure", "lighthouse", "attestations"],
+        "properties": {
+          "tenantId": { "$ref": "#/$defs/guid" },
+          "domain": { "$ref": "#/$defs/domain" },
+          "sourceGroup": {
+            "type": "object", "additionalProperties": false,
+            "required": ["create", "displayName", "objectId"],
+            "properties": {
+              "create": { "type": "boolean" },
+              "displayName": { "type": "string", "minLength": 1, "maxLength": 100, "pattern": "^[A-Za-z0-9 _.-]+$" },
+              "objectId": { "oneOf": [{ "$ref": "#/$defs/guid" }, { "type": "null" }] }
+            }
+          },
+          "synchronization": {
+            "type": "object", "additionalProperties": false,
+            "required": ["mode", "approveStart", "reviewedMatchingAndLifecycle"],
+            "properties": {
+              "mode": { "const": "Groups" },
+              "approveStart": { "type": "boolean" },
+              "reviewedMatchingAndLifecycle": { "type": "boolean" }
+            }
+          },
+          "authorization": {
+            "type": "object", "additionalProperties": false,
+            "required": ["profile", "targetGroupObjectId"],
+            "properties": {
+              "profile": { "enum": ["Reader", "Responder", "Contributor"] },
+              "targetGroupObjectId": { "oneOf": [{ "$ref": "#/$defs/guid" }, { "type": "null" }] }
+            }
+          },
+          "azure": {
+            "type": "object", "additionalProperties": false,
+            "required": ["subscriptionId", "resourceGroup", "workspaceName"],
+            "properties": {
+              "subscriptionId": { "$ref": "#/$defs/guid" },
+              "resourceGroup": { "type": "string", "pattern": "^[A-Za-z0-9_().-]{1,90}$" },
+              "workspaceName": { "type": "string", "pattern": "^[A-Za-z0-9-]{4,63}$" }
+            }
+          },
+          "lighthouse": {
+            "type": "object", "additionalProperties": false,
+            "required": ["authorizations"],
+            "properties": {
+              "authorizations": {
+                "type": "array", "minItems": 1,
+                "items": {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["principalId", "principalIdDisplayName", "roleDefinitionId"],
+                  "properties": {
+                    "principalId": { "$ref": "#/$defs/guid" },
+                    "principalIdDisplayName": { "type": "string", "minLength": 1 },
+                    "roleDefinitionId": { "enum": ["8d289c81-5878-46d4-8554-54e1e3d8b5cb", "3e150937-b8fe-4cfb-8069-0eaf05ecd056", "ab8e14d6-4a74-4a29-9ba8-549422addade"] }
+                  }
+                }
+              }
+            }
+          },
+          "attestations": {
+            "type": "object", "additionalProperties": false,
+            "required": ["governanceOrSuiteForEverySyncedUser", "targetGroupSyncEnabled", "targetConsentApproved", "directDefenderAccessVerified", "defenderUnifiedRbacAssigned", "sentinelConnectedInManagedTenant", "addedToDefenderMultitenantManagement"],
+            "properties": {
+              "governanceOrSuiteForEverySyncedUser": { "type": "boolean" },
+              "targetGroupSyncEnabled": { "type": "boolean" },
+              "targetConsentApproved": { "type": "boolean" },
+              "directDefenderAccessVerified": { "type": "boolean" },
+              "defenderUnifiedRbacAssigned": { "type": "boolean" },
+              "sentinelConnectedInManagedTenant": { "type": "boolean" },
+              "addedToDefenderMultitenantManagement": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "guid": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" },
+    "domain": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9.-]+\\.[A-Za-z]{2,}$" },
+    "tenant": {
+      "type": "object", "additionalProperties": false, "required": ["tenantId", "domain"],
+      "properties": { "tenantId": { "$ref": "#/$defs/guid" }, "domain": { "$ref": "#/$defs/domain" } }
+    }
+  }
+}

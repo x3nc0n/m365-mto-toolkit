@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "managedByTenantId": { "type": "string" },
+    "resourceGroupName": { "type": "string" },
+    "registrationDefinitionName": { "type": "string" },
+    "registrationAssignmentName": { "type": "string" },
+    "ownershipMarker": { "type": "string" },
+    "authorizations": { "type": "array", "minLength": 1 }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ManagedServices/registrationDefinitions",
+      "apiVersion": "2022-10-01",
+      "name": "[parameters('registrationDefinitionName')]",
+      "properties": {
+        "registrationDefinitionName": "[concat('m365-mto-toolkit-', parameters('registrationDefinitionName'))]",
+        "description": "[parameters('ownershipMarker')]",
+        "managedByTenantId": "[parameters('managedByTenantId')]",
+        "authorizations": "[parameters('authorizations')]"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[concat('mto-lighthouse-', parameters('registrationAssignmentName'))]",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.ManagedServices/registrationDefinitions', parameters('registrationDefinitionName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "expressionEvaluationOptions": { "scope": "inner" },
+        "parameters": {
+          "definitionId": {
+            "value": "[subscriptionResourceId('Microsoft.ManagedServices/registrationDefinitions', parameters('registrationDefinitionName'))]"
+          },
+          "assignmentName": { "value": "[parameters('registrationAssignmentName')]" }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "definitionId": { "type": "string" },
+            "assignmentName": { "type": "string" }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedServices/registrationAssignments",
+              "apiVersion": "2022-10-01",
+              "name": "[parameters('assignmentName')]",
+              "properties": { "registrationDefinitionId": "[parameters('definitionId')]" }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

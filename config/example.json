@@ -1,0 +1,51 @@
+{
+  "$schema": "./configuration.schema.json",
+  "version": 1,
+  "managingTenant": {
+    "tenantId": "11111111-1111-4111-8111-111111111111",
+    "domain": "contoso.example"
+  },
+  "managedTenants": [
+    {
+      "tenantId": "22222222-2222-4222-8222-222222222222",
+      "domain": "fabrikam.example",
+      "sourceGroup": {
+        "create": true,
+        "displayName": "MTO-Fabrikam-Analysts",
+        "objectId": null
+      },
+      "synchronization": {
+        "mode": "Groups",
+        "approveStart": false,
+        "reviewedMatchingAndLifecycle": false
+      },
+      "authorization": {
+        "targetGroupObjectId": null,
+        "profile": "Reader"
+      },
+      "azure": {
+        "subscriptionId": "33333333-3333-4333-8333-333333333333",
+        "resourceGroup": "rg-fabrikam-security",
+        "workspaceName": "law-fabrikam-security"
+      },
+      "lighthouse": {
+        "authorizations": [
+          {
+            "principalId": "44444444-4444-4444-8444-444444444444",
+            "principalIdDisplayName": "Contoso Sentinel readers",
+            "roleDefinitionId": "8d289c81-5878-46d4-8554-54e1e3d8b5cb"
+          }
+        ]
+      },
+      "attestations": {
+        "governanceOrSuiteForEverySyncedUser": false,
+        "targetGroupSyncEnabled": false,
+        "targetConsentApproved": false,
+        "directDefenderAccessVerified": false,
+        "defenderUnifiedRbacAssigned": false,
+        "sentinelConnectedInManagedTenant": false,
+        "addedToDefenderMultitenantManagement": false
+      }
+    }
+  ]
+}

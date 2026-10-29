@@ -1,0 +1,31 @@
+name: Offline validation
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test tools
+        shell: pwsh
+        run: |
+          Install-Module Pester -RequiredVersion 5.7.1 -Force -Scope CurrentUser
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force -Scope CurrentUser
+      - name: Validate PowerShell and configuration
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0
+          $issues = @(
+            Invoke-ScriptAnalyzer -Path .\src -Recurse -Severity Warning,Error
+            Invoke-ScriptAnalyzer -Path .\scripts -Recurse -Severity Warning,Error
+          )
+          if ($issues.Count) { $issues | Format-Table -Wrap; throw 'Static analysis failed.' }
+          Import-Module .\src\MtoToolkit.psm1
+          $null = Read-MtoConfiguration .\config\example.json
+          Import-Module Pester -RequiredVersion 5.7.1
+          $result = Invoke-Pester -Path .\tests -PassThru -Output Detailed
+          if ($result.FailedCount -or $result.Result -ne 'Passed') { throw 'Offline tests failed.' }
